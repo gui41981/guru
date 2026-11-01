@@ -19,15 +19,11 @@ KEYWORDS="~amd64"
 src_prepare() {
 	default
 
-	local loader_usb_h="${S}/drivers/aic8800/aic_load_fw/aicwf_usb.h"
-	local wlan_usb_h="${S}/drivers/aic8800/aic8800_fdrv/aicwf_usb.h"
 	local quirk="${S}/drivers/aic8800/aic_zlp_quirk/aic_zlp_quirk.c"
 
-	# This adapter enumerates as A69C:8D81, while upstream currently
-	# associates the 8D81 product ID with the older 368B vendor ID.
-	sed -i -e 's/0x368B/0xa69c/g' "${loader_usb_h}" "${wlan_usb_h}" ||
-		die "Failed to update the AIC USB vendor ID in the Wi-Fi/loader drivers"
-
+	# The adapter enumerates as A69C:8D81. The Wi-Fi and firmware-loader
+	# tables already match A69C:8D81 through USB_VENDOR_ID_AIC; only the
+	# companion ZLP quirk still carries the upstream 368B:8D81 identifier.
 	sed -i \
 		-e 's/0x368b/0xa69c/g' \
 		-e 's/368b:8d81/a69c:8d81/g' \
@@ -35,10 +31,6 @@ src_prepare() {
 		"${quirk}" ||
 		die "Failed to update the AIC USB vendor ID in the Bluetooth ZLP quirk"
 
-	grep -qE '^#define USB_VENDOR_ID_AIC_V2[[:space:]]+0xa69c$' "${loader_usb_h}" ||
-		die "AIC loader USB vendor ID correction missing"
-	grep -qE '^#define USB_VENDOR_ID_AIC_V2[[:space:]]+0xa69c$' "${wlan_usb_h}" ||
-		die "AIC WLAN USB vendor ID correction missing"
 	grep -q 'AIC_USB_VENDOR_ID[[:space:]]+0xa69c' "${quirk}" ||
 		die "AIC Bluetooth ZLP vendor ID correction missing"
 	grep -q 'MODULE_ALIAS("usb:va69cp8D81' "${quirk}" ||

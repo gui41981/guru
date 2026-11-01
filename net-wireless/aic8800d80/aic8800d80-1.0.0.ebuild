@@ -3,14 +3,16 @@
 
 EAPI=8
 
-inherit linux-mod-r1
+inherit git-r3 linux-mod-r1
 
 DESCRIPTION="AIC8800D80 USB Wi-Fi driver, Bluetooth firmware loader and ACL ZLP quirk"
 HOMEPAGE="https://github.com/shenmintao/aic8800d80"
 
-AIC_COMMIT="fab5be8bd6d25715e690d0df21d72689887ec2a7"
-SRC_URI="https://github.com/shenmintao/aic8800d80/archive/${AIC_COMMIT}.tar.gz -> ${P}.tar.gz"
-S="${WORKDIR}/${PN}-${AIC_COMMIT}"
+EGIT_REPO_URI="https://github.com/shenmintao/aic8800d80.git"
+EGIT_COMMIT="fab5be8bd6d25715e690d0df21d72689887ec2a7"
+S="${WORKDIR}/${P}"
+
+CONFIG_CHECK="KPROBES"
 
 LICENSE="GPL-2"
 SLOT="0"
@@ -31,16 +33,13 @@ src_prepare() {
 		"${quirk}" ||
 		die "Failed to update the AIC USB vendor ID in the Bluetooth ZLP quirk"
 
-	grep -q 'AIC_USB_VENDOR_ID[[:space:]]+0xa69c' "${quirk}" ||
+	grep -q 'AIC_USB_VENDOR_ID.*0xa69c' "${quirk}" ||
 		die "AIC Bluetooth ZLP vendor ID correction missing"
 	grep -q 'MODULE_ALIAS("usb:va69cp8D81' "${quirk}" ||
 		die "AIC Bluetooth ZLP module alias correction missing"
 }
 
 src_compile() {
-	grep -q '^CONFIG_KPROBES=y' "${KV_OUT_DIR}/.config" ||
-		die "The target kernel must have CONFIG_KPROBES=y for aic_zlp_quirk"
-
 	local -a modlist=(
 		"aic_load_fw=kernel/drivers/net/wireless/aic8800:drivers/aic8800:drivers/aic8800/aic_load_fw:modules"
 		"aic8800_fdrv=kernel/drivers/net/wireless/aic8800:drivers/aic8800:drivers/aic8800/aic8800_fdrv:modules"

@@ -8,9 +8,10 @@ GEM mmap-offset interface. Check import_attach before evdi_pin_pages():
 the previous order incremented pages_pin_count and returned -EINVAL
 without releasing that pin for every rejected imported object.
 
-Keep the rejection and its diagnostic unchanged; DMA-BUF CPU access must
-use the dedicated DMA-BUF mapping path with the exporter's synchronization
-contract, not this dumb-buffer mmap ioctl.
+Keep the rejection: direct dumb-buffer mmap cannot honour the DMA-BUF
+exporter's CPU-access synchronization contract. Make the warning null-safe
+and include the requesting process so the invalid userspace caller can be
+identified without guessing.
 ---
  module/evdi_gem.c | 15 ++++++++++-----
  1 file changed, 10 insertions(+), 5 deletions(-)

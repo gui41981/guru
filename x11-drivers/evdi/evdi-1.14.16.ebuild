@@ -51,6 +51,7 @@ RESTRICT="!test? ( test )"
 
 PATCHES=(
 	"${FILESDIR}/${PN}-1.14.4-format-truncation.patch"
+	"${FILESDIR}/${PN}-1.14.16-imported-mmap-pin-leak.patch"
 )
 
 pkg_setup() {

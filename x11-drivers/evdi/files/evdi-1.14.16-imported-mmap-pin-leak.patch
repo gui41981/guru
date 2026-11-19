@@ -12,8 +12,8 @@ Keep the rejection and its diagnostic unchanged; DMA-BUF CPU access must
 use the dedicated DMA-BUF mapping path with the exporter's synchronization
 contract, not this dumb-buffer mmap ioctl.
 ---
- module/evdi_gem.c | 8 ++++----
- 1 file changed, 4 insertions(+), 4 deletions(-)
+ module/evdi_gem.c | 14 +++++++++-----
+ 1 file changed, 9 insertions(+), 5 deletions(-)
 
 diff --git a/module/evdi_gem.c b/module/evdi_gem.c
 index 0000000..0000000 100644
@@ -30,7 +30,13 @@ index 0000000..0000000 100644
 -
  	/* Don't allow imported objects to be mapped */
  	if (obj->import_attach) {
- 		EVDI_WARN("Don't allow imported objects to be mapped: owner: %s\n",  obj->import_attach->dmabuf->owner->name);
+-		EVDI_WARN("Don't allow imported objects to be mapped: owner: %s\n",  obj->import_attach->dmabuf->owner->name);
++		const char *owner = "unknown";
++
++		if (obj->import_attach->dmabuf->owner)
++			owner = obj->import_attach->dmabuf->owner->name;
++		EVDI_WARN("Rejecting imported GEM mmap: owner=%s caller=%s[%d]\n",
++			  owner, current->comm, task_pid_nr(current));
  		ret = -EINVAL;
  		goto out;
  	}
